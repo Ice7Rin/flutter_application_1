@@ -1,5 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'main.freezed.dart';
+
+@freezed
+class ReviewData with _$ReviewData {
+  const factory ReviewData({
+    required Title title,
+    required RatingData ratingData,
+  }) = _ReviewData;
+}
+
+@freezed
+class Title with _$Title {
+  const factory Title({
+    required String titleSvg,
+    required String titleText,
+  }) = _Title;
+}
+
+@freezed
+class RatingData with _$RatingData {
+  const factory RatingData({
+    required double ratingsScore,
+    String? ratingText,
+    String? impressions,
+  }) = _RatingData;
+}
 
 const String svgString =
     '''<svg width="12" height="13" viewBox="0 0 12 13" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -14,19 +42,80 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
+    const data = ReviewData(
+      ratingData: RatingData(
+        ratingsScore: 2.3,
+        ratingText: "Null",
+        impressions: "Good Enviornemnt",
+      ),
+      title: Title(titleSvg: svgString, titleText: 'T'),
+    );
     return MaterialApp(
       theme: ThemeData.from(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue)),
-      home: const MyScaffold(),
+      home: const MyScaffold(
+        data: data,
+      ),
+    );
+  }
+}
+
+class Star extends StatelessWidget {
+  const Star({
+    super.key,
+    required this.score,
+  });
+  final double score;
+  @override
+  Widget build(BuildContext context) {
+    const data = ReviewData(
+      ratingData: RatingData(
+        ratingsScore: 4,
+        ratingText: "Null",
+        impressions: "Good Enviornemnt",
+      ),
+      title: Title(titleSvg: svgString, titleText: 'T'),
+    );
+    int value = data.ratingData.ratingsScore.toInt();
+    return Row(
+      children: [
+        for (int i = 0; i < value; i++)
+          const Icon(
+            Icons.star,
+            color: Colors.orange,
+          ),
+        (data.ratingData.ratingsScore - value >= 0.35 &&
+                data.ratingData.ratingsScore - value <= 0.7)
+            ? const Icon(
+                Icons.star_half,
+                color: Colors.orange,
+              )
+            : (data.ratingData.ratingsScore - value > 0.7)
+                ? const Icon(
+                    Icons.star,
+                    color: Colors.orange,
+                  )
+                : Row(
+                    children: [
+                      ...List.generate(
+                          5 - value,
+                          (_) => const Icon(
+                                Icons.star,
+                                color: Colors.grey,
+                              )),
+                    ],
+                  ),
+      ],
     );
   }
 }
 
 class MyScaffold extends StatelessWidget {
   const MyScaffold({
+    required this.data,
     super.key,
   });
-
+  final ReviewData data;
   @override
   Widget build(BuildContext context) {
     const style = TextStyle(
@@ -46,12 +135,12 @@ class MyScaffold extends StatelessWidget {
                 child: Row(
                   children: [
                     SvgPicture.string(
-                      svgString,
+                      data.title.titleSvg,
                       width: 50,
                       height: 50,
                     ),
-                    const Text(
-                      'Highlighted review',
+                    Text(
+                      data.title.titleText,
                       style: style,
                     ),
                   ],
@@ -81,26 +170,7 @@ class MyScaffold extends StatelessWidget {
                       ),
                       Row(
                         children: [
-                          const Icon(
-                            Icons.star,
-                            color: Colors.orange,
-                          ),
-                          const Icon(
-                            Icons.star,
-                            color: Colors.orange,
-                          ),
-                          const Icon(
-                            Icons.star,
-                            color: Colors.orange,
-                          ),
-                          const Icon(
-                            Icons.star,
-                            color: Colors.orange,
-                          ),
-                          const Icon(
-                            Icons.star,
-                            color: Color.fromRGBO(192, 192, 192, 0.5),
-                          ),
+                          Star(score: data.ratingData.ratingsScore),
                           const Text(
                             '21 Dec 2023',
                             style: TextStyle(
@@ -133,9 +203,9 @@ class MyScaffold extends StatelessWidget {
                     decoration: const BoxDecoration(
                       color: Color.fromRGBO(0, 177, 233, 0.05),
                     ),
-                    child: const Text(
-                      'Good Environment',
-                      style: TextStyle(
+                    child: Text(
+                      data.ratingData.impressions ?? '',
+                      style: const TextStyle(
                         fontSize: 16,
                         color: Color.fromRGBO(0, 177, 233, 1),
                       ),
